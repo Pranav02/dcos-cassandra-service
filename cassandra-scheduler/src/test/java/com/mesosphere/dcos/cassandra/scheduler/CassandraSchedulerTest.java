@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.io.Resources;
 import com.mesosphere.dcos.cassandra.common.config.*;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
+import com.mesosphere.dcos.cassandra.common.placementrule.AwsInfrastructure;
 import com.mesosphere.dcos.cassandra.common.tasks.*;
 import com.mesosphere.dcos.cassandra.scheduler.client.SchedulerClient;
 import com.mesosphere.dcos.cassandra.scheduler.plan.backup.BackupManager;
@@ -73,7 +74,7 @@ public class CassandraSchedulerTest {
     private static TestingServer server;
     private QueuedSchedulerDriver driver;
     private ConfigurationFactory<MutableSchedulerConfiguration> factory;
-
+    private AwsInfrastructure.AwsRegion awsRegion=AwsInfrastructure.AwsRegion.AP_NORTH_EAST_1;
     @Before
     public void beforeEach() throws Exception {
         server = new TestingServer();
@@ -137,6 +138,9 @@ public class CassandraSchedulerTest {
                 stateStore);
 
         offerRequirementProvider = new PersistentOfferRequirementProvider(defaultConfigurationManager);
+        AwsInfrastructure awsInfrastructure = Mockito.mock(AwsInfrastructure.class);
+		when(awsInfrastructure.getMySiblingZones())
+				.thenReturn(Arrays.asList(awsRegion.getAvaliablityZones()[0]));
         scheduler = new CassandraScheduler(
                 configurationManager,
                 mesosConfig,
@@ -153,7 +157,8 @@ public class CassandraSchedulerTest {
                 executorService,
                 stateStore,
                 defaultConfigurationManager,
-                capabilities);
+                capabilities,
+                awsInfrastructure);
 
         masterInfo = TestUtils.generateMasterInfo();
 
@@ -186,9 +191,16 @@ public class CassandraSchedulerTest {
         Collection<? extends Step> incompleteSteps = getIncompleteSteps();
         assertEquals(incompleteSteps.toString(), 3, incompleteSteps.size());
         assertEquals("node-0", getNextStep().getName());
-
+        
+        String[] avaZones = awsRegion.getAvaliablityZones();
+        
+        HashMap<String, String> attributes = new HashMap<String, String>();
+		attributes.put("zone", avaZones[0]);
         // node-0
-        final Protos.Offer offer1 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240);
+		String offerId = UUID.randomUUID().toString();
+		final Protos.Offer offer1 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240, offerId, offerId,
+				attributes);
+        
         scheduler.resourceOffers(driver, Arrays.asList(offer1));
 
         incompleteSteps = getIncompleteSteps();
@@ -205,7 +217,8 @@ public class CassandraSchedulerTest {
         assertEquals("node-1", getNextStep().getName());
 
         // node-1
-        final Protos.Offer offer2 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240);
+        final Protos.Offer offer2 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240,offerId, offerId,
+				attributes);
         scheduler.resourceOffers(driver, Arrays.asList(offer2));
 
         incompleteSteps = getIncompleteSteps();
@@ -222,7 +235,8 @@ public class CassandraSchedulerTest {
         assertEquals("node-2", getNextStep().getName());
 
         // node-2
-        final Protos.Offer offer3 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240);
+		final Protos.Offer offer3 = TestUtils.generateOffer(frameworkId.getValue(), 4, 10240, 10240, offerId, offerId,
+				attributes);
         scheduler.resourceOffers(driver, Arrays.asList(offer3));
 
         incompleteSteps = getIncompleteSteps();

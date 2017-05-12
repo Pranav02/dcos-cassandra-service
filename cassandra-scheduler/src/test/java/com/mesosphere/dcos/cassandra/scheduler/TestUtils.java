@@ -1,12 +1,19 @@
 package com.mesosphere.dcos.cassandra.scheduler;
 
-import com.mesosphere.dcos.cassandra.common.tasks.CassandraData;
-import com.mesosphere.dcos.cassandra.common.tasks.CassandraMode;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Attribute;
+import org.apache.mesos.Protos.Value.TextOrBuilder;
 import org.apache.mesos.offer.ResourceUtils;
 
-import java.util.Arrays;
-import java.util.UUID;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraData;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraMode;
 
 public class TestUtils {
     public static final Protos.FrameworkID generateFrameworkId() {
@@ -68,6 +75,37 @@ public class TestUtils {
                 .addResources(ResourceUtils.getUnreservedRanges(
                         "ports",
                         Arrays.asList(Protos.Value.Range.newBuilder().setBegin(5000).setEnd(40000).build())))
+                .build();
+    }
+    
+    public static Protos.Offer generateOffer(
+            String frameworkId,
+            double cpu,
+            int memory,
+            int disk,
+            String slaveId,
+            String offerUUID,
+            Map<String,String> attributes) {
+
+    	List<Attribute> offerAttributes = new ArrayList<Attribute>();
+    	for(Entry<String, String> entry : attributes.entrySet()){
+    		offerAttributes.add(Protos.Attribute.newBuilder().setName(entry.getKey())
+					.setText(Protos.Value.Text.newBuilder().setValue(entry.getValue()).build()).setType(Protos.Value.Type.TEXT).build());
+    	}
+    	
+        return Protos.Offer
+                .newBuilder()
+                .setId(Protos.OfferID.newBuilder().setValue(offerUUID))
+                .setFrameworkId(Protos.FrameworkID.newBuilder().setValue(frameworkId))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue(slaveId))
+                .setHostname("127.0.0.1")
+                .addResources(ResourceUtils.getUnreservedScalar("cpus", cpu))
+                .addResources(ResourceUtils.getUnreservedScalar("mem", memory))
+                .addResources(ResourceUtils.getUnreservedScalar("disk", disk))
+                .addResources(ResourceUtils.getUnreservedRanges(
+                        "ports",
+                        Arrays.asList(Protos.Value.Range.newBuilder().setBegin(5000).setEnd(40000).build())))
+                .addAllAttributes(offerAttributes)
                 .build();
     }
 

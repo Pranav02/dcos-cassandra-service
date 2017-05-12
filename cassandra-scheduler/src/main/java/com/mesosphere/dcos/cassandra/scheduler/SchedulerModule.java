@@ -6,6 +6,7 @@ import com.google.inject.name.Names;
 import com.mesosphere.dcos.cassandra.common.config.*;
 import com.mesosphere.dcos.cassandra.common.offer.ClusterTaskOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
+import com.mesosphere.dcos.cassandra.common.placementrule.AwsInfrastructure;
 import com.mesosphere.dcos.cassandra.common.serialization.BooleanStringSerializer;
 import com.mesosphere.dcos.cassandra.common.serialization.IntegerStringSerializer;
 import com.mesosphere.dcos.cassandra.common.serialization.Serializer;
@@ -111,6 +112,7 @@ public class SchedulerModule extends AbstractModule {
         bind(IdentityManager.class).asEagerSingleton();
         bind(ConfigurationManager.class).asEagerSingleton();
         bind(PersistentOfferRequirementProvider.class);
+        bind(AwsInfrastructure.class).asEagerSingleton();
         bind(CassandraState.class).asEagerSingleton();
         bind(ClusterTaskOfferRequirementProvider.class);
         bind(PropertyDeserializer.class).to(JsonPropertyDeserializer.class);

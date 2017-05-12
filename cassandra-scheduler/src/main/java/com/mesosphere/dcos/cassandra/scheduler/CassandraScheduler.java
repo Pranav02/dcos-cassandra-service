@@ -10,6 +10,7 @@ import com.mesosphere.dcos.cassandra.common.config.*;
 import com.mesosphere.dcos.cassandra.common.offer.LogOperationRecorder;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOperationRecorder;
+import com.mesosphere.dcos.cassandra.common.placementrule.AwsInfrastructure;
 import com.mesosphere.dcos.cassandra.common.tasks.CassandraState;
 import com.mesosphere.dcos.cassandra.scheduler.client.SchedulerClient;
 import com.mesosphere.dcos.cassandra.scheduler.plan.CassandraDaemonPhase;
@@ -92,6 +93,8 @@ public class CassandraScheduler implements Scheduler, Observer {
     private PlanScheduler planScheduler;
     private CassandraRecoveryScheduler recoveryScheduler;
     private Collection<Object> resources;
+    
+    private AwsInfrastructure awsInfrastructure;
 
     @Inject
     public CassandraScheduler(
@@ -110,7 +113,8 @@ public class CassandraScheduler implements Scheduler, Observer {
             final ScheduledExecutorService executor,
             final StateStore stateStore,
             final DefaultConfigurationManager defaultConfigurationManager,
-            final Capabilities capabilities) {
+            final Capabilities capabilities,
+            final AwsInfrastructure awsInfrastructure) {
         this.mesosConfig = mesosConfig;
         this.cassandraState = cassandraState;
         this.reconciler = new DefaultReconciler(stateStore);
@@ -134,7 +138,7 @@ public class CassandraScheduler implements Scheduler, Observer {
         this.stateStore = stateStore;
         this.defaultConfigurationManager = defaultConfigurationManager;
         this.capabilities = capabilities;
-
+        this.awsInfrastructure = awsInfrastructure;
         this.offerFilters = Protos.Filters.newBuilder().setRefuseSeconds(mesosConfig.getRefuseSeconds()).build();
         LOGGER.info("Creating an offer filter with refuse_seconds = {}", mesosConfig.getRefuseSeconds());
         // Install cert from $MESOS_SANDBOX/.ssl/ca.crt into JRE's keystore.
@@ -168,7 +172,7 @@ public class CassandraScheduler implements Scheduler, Observer {
                     ReconciliationPhase.create(reconciler),
                     SyncDataCenterPhase.create(seeds, executor),
                     CassandraDaemonPhase.create(
-                            cassandraState, offerRequirementProvider, client, defaultConfigurationManager),
+                            cassandraState, offerRequirementProvider, client, defaultConfigurationManager,awsInfrastructure),
                     Arrays.asList(
                             backup, restore, cleanup, repair, upgrade));
             plan.subscribe(this);
