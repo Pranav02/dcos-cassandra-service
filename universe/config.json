@@ -436,6 +436,12 @@
 					"description": "The default timeout for all other requests in ms.",
 					"default": 10000
 				},
+				"endpoint_snitch": {
+					"id": "http://cassandra/docs/mesosphere.com/cassandra/endPointSnitch",
+					"type": "string",
+					"description": "Snitch used for given cluster",
+					"default": "GossipingPropertyFileSnitch"
+				},
 				"dynamic_snitch_update_interval_in_ms": {
 					"id": "http://cassandra/docs/mesosphere.com/cassandra/dynamicSnitchUpdateIntervalInMs",
 					"type": "integer",
@@ -527,6 +533,7 @@
 				"cas_contention_timeout_in_ms",
 				"truncate_request_timeout_in_ms",
 				"request_timeout_in_ms",
+				"endpoint_snitch",
 				"dynamic_snitch_update_interval_in_ms",
 				"dynamic_snitch_reset_interval_in_ms",
 				"dynamic_snitch_badness_threshold",
