@@ -11,7 +11,19 @@
       "protocol": "tcp",
       "name": "api",
       "labels": {}
-    }
+    },
+    {
+       "port": 22100,
+       "protocol": "tcp",
+       "name": "schedulerjavadebug",
+       "labels": {}
+    },
+    {
+           "port": 22101,
+           "protocol": "tcp",
+           "name": "executorjavadebug",
+           "labels": {}
+     }
   ],
 "uris": [
   "{{resource.assets.uris.scheduler-zip}}",

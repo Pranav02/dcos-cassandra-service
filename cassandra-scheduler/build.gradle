@@ -1,7 +1,7 @@
 apply plugin: 'application'
 apply plugin: 'maven-publish'
 mainClassName = 'com.mesosphere.dcos.cassandra.scheduler.Main'
-
+applicationDefaultJvmArgs = ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=22100"]
 dependencies {
     compile project(':cassandra-commons')
 }
