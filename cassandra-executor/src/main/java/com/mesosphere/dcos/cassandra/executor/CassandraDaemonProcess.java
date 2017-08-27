@@ -15,11 +15,23 @@
  */
 package com.mesosphere.dcos.cassandra.executor;
 
-import com.google.common.collect.ImmutableSet;
-import com.mesosphere.dcos.cassandra.common.tasks.*;
-import com.mesosphere.dcos.cassandra.executor.metrics.MetricsConfig;
-import org.apache.cassandra.db.SystemKeyspace;
-import org.apache.cassandra.schema.SchemaKeyspace;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -28,20 +40,12 @@ import org.apache.mesos.offer.TaskUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraDaemonStatus;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraDaemonTask;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraMode;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraStatus;
+import com.mesosphere.dcos.cassandra.common.tasks.CassandraTask;
+import com.mesosphere.dcos.cassandra.executor.metrics.MetricsConfig;
 
 
 /**
@@ -53,8 +57,7 @@ import java.util.stream.Collectors;
  * daemon via JMX using the NodeProbe class.
  */
 public class CassandraDaemonProcess extends ProcessTask {
-    public static final Set<String> SYSTEM_KEYSPACE_NAMES =
-            ImmutableSet.of(SystemKeyspace.NAME, SchemaKeyspace.NAME);
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(CassandraDaemonProcess.class);
 
     private final CassandraDaemonTask task;
@@ -325,10 +328,7 @@ public class CassandraDaemonProcess extends ProcessTask {
      * the Cassandra instance.
      */
     public List<String> getNonSystemKeySpaces() {
-        return getProbe().getKeyspaces().stream().filter(
-                keyspace ->
-                        !SYSTEM_KEYSPACE_NAMES.contains(keyspace))
-                .collect(Collectors.toList());
+        return getProbe().getNonSystemKeyspaces();
     }
 
     /**
@@ -360,11 +360,11 @@ public class CassandraDaemonProcess extends ProcessTask {
             throws InterruptedException, ExecutionException, IOException {
 
         if (columnFamilies.isEmpty()) {
-            getProbe().forceKeyspaceCleanup(0, keySpace);
+			getProbe().forceKeyspaceCleanup(keySpace, columnFamilies.toArray(new String[0]));
         } else {
             String[] families = new String[columnFamilies.size()];
             families = columnFamilies.toArray(families);
-            getProbe().forceKeyspaceCleanup(0, keySpace, families);
+            getProbe().forceKeyspaceCleanup(keySpace, families);
         }
 
     }
@@ -481,6 +481,6 @@ public class CassandraDaemonProcess extends ProcessTask {
         // available compaction threads.
         final int jobs = 0;
 
-        getProbe().upgradeSSTables(keyspace, excludeCurrentVersion, jobs, families);
+        getProbe().upgradeSSTables(keyspace, excludeCurrentVersion, families);
     }
 }
