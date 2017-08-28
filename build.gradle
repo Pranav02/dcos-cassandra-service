@@ -23,7 +23,7 @@ ext {
     isSnapshot = project.properties['Release'] ? false : true
 }
 
-def cassVer = System.properties['cassVer'] ?: "3.0.8"
+def cassVer = System.properties['cassVer'] ?: "3.7"
 
 allprojects {
     apply plugin: 'java'

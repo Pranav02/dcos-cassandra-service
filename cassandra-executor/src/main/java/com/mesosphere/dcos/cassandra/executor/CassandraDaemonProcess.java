@@ -393,7 +393,7 @@ public class CassandraDaemonProcess extends ProcessTask {
      * @throws IOException If an error occurs taking the snapshot.
      */
     public void takeSnapShot(String name, String keySpace) throws IOException {
-        getProbe().takeSnapshot(name, null, keySpace);
+        getProbe().takeSnapshot(name, null, null, keySpace);
     }
 
     /** Clears a snapshot of the indicated key space with the given name.
