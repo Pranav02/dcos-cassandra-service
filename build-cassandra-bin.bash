@@ -177,6 +177,14 @@ pwd
 # Copy seedprovider lib from regular local build into cassandra-bin/lib
 cp -v ../seedprovider/build/libs/seedprovider.jar ${LIB_DIR}
 
+echo "########### Adding cassandra-lucene-index jars ####"
+git clone https://github.com/Stratio/cassandra-lucene-index
+cd cassandra-lucene-index
+git checkout branch-${CASSANDRA_VERSION}
+mvn clean package -Dmaven.test.skip=true
+cd ..
+cp -v cassandra-lucene-index/plugin/target/cassandra-lucene-index-plugin-*.jar ${LIB_DIR}
+
 echo "##### Install StatsD metrics support #####"
 
 # StatsD Reporter: custom build with newer version of metrics-core
