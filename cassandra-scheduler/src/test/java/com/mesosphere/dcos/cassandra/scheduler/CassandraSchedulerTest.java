@@ -4,6 +4,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.google.common.io.Resources;
 import com.mesosphere.dcos.cassandra.common.config.*;
+import com.mesosphere.dcos.cassandra.common.offer.ClusterTaskOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.tasks.*;
 import com.mesosphere.dcos.cassandra.scheduler.client.SchedulerClient;
@@ -55,6 +56,7 @@ public class CassandraSchedulerTest {
     private CassandraScheduler scheduler;
     private ConfigurationManager configurationManager;
     private PersistentOfferRequirementProvider offerRequirementProvider;
+    private ClusterTaskOfferRequirementProvider clusterTaskOfferRequirementProvider;
     private CassandraState cassandraState;
     private SchedulerClient client;
     private BackupManager backup;
@@ -135,7 +137,7 @@ public class CassandraSchedulerTest {
                 configurationManager,
                 configurationManager.getTargetConfig().getClusterTaskConfig(),
                 stateStore);
-
+		clusterTaskOfferRequirementProvider = Mockito.mock(ClusterTaskOfferRequirementProvider.class);
         offerRequirementProvider = new PersistentOfferRequirementProvider(defaultConfigurationManager);
         scheduler = new CassandraScheduler(
                 configurationManager,
@@ -153,7 +155,8 @@ public class CassandraSchedulerTest {
                 executorService,
                 stateStore,
                 defaultConfigurationManager,
-                capabilities);
+                capabilities,
+                clusterTaskOfferRequirementProvider);
 
         masterInfo = TestUtils.generateMasterInfo();
 

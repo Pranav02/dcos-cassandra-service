@@ -40,6 +40,7 @@ public class MutableSchedulerConfiguration extends Configuration {
   private String dcUrl;
   private String phaseStrategy;
   private boolean enableUpgradeSSTableEndpoint;
+  private boolean upgradeSSTables;
   private HttpClientConfiguration httpClientConfiguration;
   private String zones;
 
@@ -207,6 +208,16 @@ public class MutableSchedulerConfiguration extends Configuration {
   public void setEnableUpgradeSSTableEndpoint(boolean enableUpgradeSSTableEndpoint) {
     this.enableUpgradeSSTableEndpoint = enableUpgradeSSTableEndpoint;
   }
+  
+	@JsonProperty("upgrade_sstables")
+	public boolean getUpgradeSStables() {
+		return upgradeSSTables;
+	}
+	
+	@JsonProperty("upgrade_sstables")
+	public void setUpgradeSSTables(boolean upgradeSSTables) {
+		this.upgradeSSTables = upgradeSSTables;
+	}
 
   @JsonProperty("http_client")
   public HttpClientConfiguration getHttpClientConfiguration() { return httpClientConfiguration; }
@@ -233,6 +244,7 @@ public class MutableSchedulerConfiguration extends Configuration {
       dcUrl,
       phaseStrategy,
       enableUpgradeSSTableEndpoint,
+      upgradeSSTables,
       httpClientConfiguration
     );
   }

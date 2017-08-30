@@ -81,6 +81,12 @@
 					"type": "boolean",
 					"description": "This enables end point for upgrading sstables",
 					"default": true
+				},
+				"upgrade_sstables": {
+					"id": "http://cassandra/docs/mesosphere.com/cassandra/upgradeSstables",
+					"type": "boolean",
+					"description": "Check this field when upgrading cassandra from one version to another.",
+					"default": false
 				}
 			},
 			"additionalProperties": false,

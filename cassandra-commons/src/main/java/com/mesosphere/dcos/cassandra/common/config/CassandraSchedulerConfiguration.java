@@ -43,6 +43,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
     @JsonProperty("dc_url") final String dcUrl,
     @JsonProperty("phase_strategy") final String phaseStrategy,
     @JsonProperty("enable_upgrade_sstable_endpoint") final boolean enableUpgradeSSTableEndpoint,
+    @JsonProperty("upgrade_sstables") final boolean upgradeSSTables,
     @JsonProperty("http_client") final HttpClientConfiguration httpClientConfiguration) {
 
     return new CassandraSchedulerConfiguration(
@@ -60,6 +61,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
       dcUrl,
       phaseStrategy,
       enableUpgradeSSTableEndpoint,
+      upgradeSSTables,
       httpClientConfiguration
     );
   }
@@ -93,6 +95,8 @@ public class CassandraSchedulerConfiguration implements Configuration {
   @JsonIgnore
   private final boolean enableUpgradeSSTableEndpoint;
   @JsonIgnore
+  private final boolean upgradeSSTables;
+  @JsonIgnore
   private final HttpClientConfiguration httpClientConfiguration;
 
   private CassandraSchedulerConfiguration(
@@ -109,6 +113,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
     String dcUrl,
     String phaseStrategy,
     boolean enableUpgradeSSTableEndpoint,
+    boolean upgradeSSTables,
     HttpClientConfiguration httpClientConfiguration) {
     this.executorConfig = executorConfig;
     this.servers = servers;
@@ -124,6 +129,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
     this.dcUrl = dcUrl;
     this.phaseStrategy = phaseStrategy;
     this.enableUpgradeSSTableEndpoint = enableUpgradeSSTableEndpoint;
+	this.upgradeSSTables = upgradeSSTables;
     this.httpClientConfiguration = httpClientConfiguration;
   }
 
@@ -194,6 +200,11 @@ public class CassandraSchedulerConfiguration implements Configuration {
 
   @JsonProperty("enable_upgrade_sstable_endpoint")
   public boolean getEnableUpgradeSSTableEndpoint() { return enableUpgradeSSTableEndpoint; }
+  
+  @JsonProperty("upgrade_sstables")
+  public boolean getUpgradeSSTables() {
+	  return upgradeSSTables;
+  }
 
   @JsonProperty("http_client")
   public HttpClientConfiguration getHttpClientConfiguration() { return httpClientConfiguration; }
@@ -208,6 +219,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
       apiPort == that.apiPort &&
       externalDcSyncMs == that.externalDcSyncMs &&
       enableUpgradeSSTableEndpoint == that.enableUpgradeSSTableEndpoint &&
+      upgradeSSTables == that.upgradeSSTables &&
       Objects.equals(executorConfig, that.executorConfig) &&
       Objects.equals(placementConstraint, that.placementConstraint) &&
       Objects.equals(cassandraConfig, that.cassandraConfig) &&
@@ -235,6 +247,7 @@ public class CassandraSchedulerConfiguration implements Configuration {
       dcUrl,
       phaseStrategy,
       enableUpgradeSSTableEndpoint,
+      upgradeSSTables,
       httpClientConfiguration);
   }
 

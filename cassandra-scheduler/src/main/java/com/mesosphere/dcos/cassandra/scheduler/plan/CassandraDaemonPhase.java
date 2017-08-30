@@ -16,11 +16,14 @@ import org.slf4j.LoggerFactory;
 
 import com.mesosphere.dcos.cassandra.common.config.CassandraSchedulerConfiguration;
 import com.mesosphere.dcos.cassandra.common.config.DefaultConfigurationManager;
+import com.mesosphere.dcos.cassandra.common.offer.ClusterTaskOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.tasks.CassandraDaemonTask;
 import com.mesosphere.dcos.cassandra.common.tasks.CassandraState;
 import com.mesosphere.dcos.cassandra.scheduler.CassandraScheduler;
 import com.mesosphere.dcos.cassandra.scheduler.client.SchedulerClient;
+import com.mesosphere.dcos.cassandra.scheduler.plan.upgradesstable.UpgradeSSTableStep;
+import com.mesosphere.dcos.cassandra.scheduler.resources.UpgradeSSTableRequest;
 
 public class CassandraDaemonPhase extends DefaultPhase {
 
@@ -28,7 +31,8 @@ public class CassandraDaemonPhase extends DefaultPhase {
     private static List<Step> createSteps(
             final CassandraState cassandraState,
             final PersistentOfferRequirementProvider provider,
-            final DefaultConfigurationManager configurationManager)
+            final DefaultConfigurationManager configurationManager,
+            final ClusterTaskOfferRequirementProvider clusterTaskOfferRequirementProvider)
                 throws ConfigStoreException, IOException {
         final int servers = ((CassandraSchedulerConfiguration)configurationManager.getTargetConfig())
                 .getServers();
@@ -61,10 +65,18 @@ public class CassandraDaemonPhase extends DefaultPhase {
         // new step with a newly recorded task for a scale out
 		
 		
-        final List<Step> steps = new ArrayList<>();
-        for (int i = 0; i < servers; i++) {
-            steps.add(CassandraDaemonStep.create(names.get(i), provider, cassandraState));
-        }
+		UpgradeSSTableRequest ssTableRequest = UpgradeSSTableRequest.create(Arrays.asList(UpgradeSSTableRequest.ALL),
+				null, null);
+		
+		final List<Step> steps = new ArrayList<>();
+		for (int i = 0; i < servers; i++) {
+			steps.add(CassandraDaemonStep.create(names.get(i), provider, cassandraState));
+			
+			if (((CassandraSchedulerConfiguration) configurationManager.getTargetConfig()).getUpgradeSSTables()) {
+				steps.add(new UpgradeSSTableStep(names.get(i), cassandraState, clusterTaskOfferRequirementProvider,
+						ssTableRequest.toContext(cassandraState)));
+			}
+		}
         
         return steps;
     }
@@ -73,10 +85,11 @@ public class CassandraDaemonPhase extends DefaultPhase {
             final CassandraState cassandraState,
             final PersistentOfferRequirementProvider provider,
             final SchedulerClient client,
-            final DefaultConfigurationManager configurationManager) {
+            final DefaultConfigurationManager configurationManager,
+			final ClusterTaskOfferRequirementProvider clusterTaskOfferRequirementProvider) {
         try {
-            return new CassandraDaemonPhase(
-                    createSteps(cassandraState, provider, configurationManager),
+			return new CassandraDaemonPhase(
+					createSteps(cassandraState, provider, configurationManager, clusterTaskOfferRequirementProvider),
                     new ArrayList<>());
         } catch (Throwable e) {
             return new CassandraDaemonPhase(new ArrayList<>(), Arrays.asList(String.format(

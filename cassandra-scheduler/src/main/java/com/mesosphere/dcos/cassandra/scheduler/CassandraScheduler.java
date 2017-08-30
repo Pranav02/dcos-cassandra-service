@@ -7,6 +7,7 @@ import com.google.inject.name.Named;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.dcos.cassandra.common.config.*;
+import com.mesosphere.dcos.cassandra.common.offer.ClusterTaskOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.LogOperationRecorder;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOperationRecorder;
@@ -79,6 +80,7 @@ public class CassandraScheduler implements Scheduler, Observer {
     private final Protos.Filters offerFilters;
     private final Capabilities capabilities;
     private final ConfigurationManager configurationManager;
+    private final ClusterTaskOfferRequirementProvider clusterTaskOfferRequirementProvider;
 
     private final BlockingQueue<Collection<Object>> resourcesQueue = new ArrayBlockingQueue<>(1);
     private AtomicBoolean isSchedulerRegistered = new AtomicBoolean(false);
@@ -110,7 +112,10 @@ public class CassandraScheduler implements Scheduler, Observer {
             final ScheduledExecutorService executor,
             final StateStore stateStore,
             final DefaultConfigurationManager defaultConfigurationManager,
-            final Capabilities capabilities) {
+            final Capabilities capabilities,
+            final ClusterTaskOfferRequirementProvider provider) {
+    	
+		this.clusterTaskOfferRequirementProvider = provider;
         this.mesosConfig = mesosConfig;
         this.cassandraState = cassandraState;
         this.reconciler = new DefaultReconciler(stateStore);
@@ -167,8 +172,8 @@ public class CassandraScheduler implements Scheduler, Observer {
                     defaultConfigurationManager,
                     ReconciliationPhase.create(reconciler),
                     SyncDataCenterPhase.create(seeds, executor),
-                    CassandraDaemonPhase.create(
-                            cassandraState, offerRequirementProvider, client, defaultConfigurationManager),
+					CassandraDaemonPhase.create(cassandraState, offerRequirementProvider, client,
+							defaultConfigurationManager, clusterTaskOfferRequirementProvider),
                     Arrays.asList(
                             backup, restore, cleanup, repair, upgrade));
             plan.subscribe(this);

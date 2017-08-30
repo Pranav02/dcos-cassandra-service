@@ -2,6 +2,7 @@ package com.mesosphere.dcos.cassandra.scheduler.plan;
 
 import com.mesosphere.dcos.cassandra.common.config.CassandraSchedulerConfiguration;
 import com.mesosphere.dcos.cassandra.common.config.DefaultConfigurationManager;
+import com.mesosphere.dcos.cassandra.common.offer.ClusterTaskOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.offer.PersistentOfferRequirementProvider;
 import com.mesosphere.dcos.cassandra.common.tasks.CassandraContainer;
 import com.mesosphere.dcos.cassandra.common.tasks.CassandraDaemonTask;
@@ -30,6 +31,9 @@ public class CassandraDaemonPhaseTest {
     private SchedulerClient client;
     @Mock
     private static DefaultConfigurationManager configurationManager;
+    
+	@Mock
+	private ClusterTaskOfferRequirementProvider clusterTaskOfferRequirementProvider;
 
     @Before
     public void beforeEach() throws Exception {
@@ -46,7 +50,8 @@ public class CassandraDaemonPhaseTest {
                 cassandraState,
                 persistentOfferRequirementProvider,
                 client,
-                mockConfigManager);
+                mockConfigManager,
+                clusterTaskOfferRequirementProvider);
         Assert.assertTrue(CollectionUtils.isEmpty(phase.getErrors()));
         Assert.assertTrue(phase.getChildren().isEmpty());
         Assert.assertEquals("Deploy", phase.getName());
@@ -72,7 +77,8 @@ public class CassandraDaemonPhaseTest {
                 cassandraState,
                 persistentOfferRequirementProvider,
                 client,
-                configurationManager);
+                configurationManager,
+                clusterTaskOfferRequirementProvider);
         Assert.assertTrue(CollectionUtils.isEmpty(phase.getErrors()));
         Assert.assertTrue(phase.getChildren().size() == 1);
         Assert.assertEquals("Deploy", phase.getName());
